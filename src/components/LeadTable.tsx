@@ -73,27 +73,33 @@ export const LeadTable = ({ leads }: LeadTableProps) => {
   const exportToCSV = () => {
     const headers = [
       "Company",
-      "Score",
-      "Confidence",
+      "Domain",
       "Employees",
       "Revenue Est",
-      "Email",
-      "LinkedIn",
       "Jobs (30d)",
       "Recent Funding",
+      "Score (Adjusted)",
+      "Confidence",
+      "AI Potential",
+      "Lead Category",
+      "Email",
+      "LinkedIn",
       "Explanation",
     ];
 
     const rows = sortedLeads.map((lead) => [
       lead.company_name || "",
-      lead.lead_score || "",
-      lead.confidence_level || "",
+      lead.domain || "",
       lead.employees || "",
       lead.revenue_est || "",
-      lead.email || "",
-      lead.linkedin || "",
       lead.jobs_30d || "",
       lead.recent_funding || "",
+      lead.lead_score || "",
+      lead.confidence_level || "",
+      lead.ai_potential || "",
+      lead.lead_category || "",
+      lead.email || "",
+      lead.linkedin || "",
       lead.explanation || "",
     ]);
 
@@ -106,13 +112,13 @@ export const LeadTable = ({ leads }: LeadTableProps) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `prioritized_leads_${new Date().toISOString().split("T")[0]}.csv`;
+    a.download = `refined_prioritized_leads_${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
 
     toast({
       title: "Export successful",
-      description: "Your leads have been exported to CSV",
+      description: "Refined leads exported to CSV",
     });
   };
 
@@ -173,7 +179,8 @@ export const LeadTable = ({ leads }: LeadTableProps) => {
                 Jobs (30d)
                 <SortIcon field="jobs_30d" />
               </TableHead>
-              <TableHead className="font-semibold">Contact</TableHead>
+              <TableHead className="font-semibold">AI Potential</TableHead>
+              <TableHead className="font-semibold">Category</TableHead>
               <TableHead className="font-semibold">Confidence</TableHead>
               <TableHead className="font-semibold">Explanation</TableHead>
             </TableRow>
@@ -209,18 +216,23 @@ export const LeadTable = ({ leads }: LeadTableProps) => {
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="flex gap-1">
-                    {lead.email && (
-                      <Badge variant="outline" className="text-xs">
-                        Email
-                      </Badge>
-                    )}
-                    {lead.linkedin && (
-                      <Badge variant="outline" className="text-xs">
-                        LinkedIn
-                      </Badge>
-                    )}
-                  </div>
+                  <Badge
+                    variant={
+                      lead.ai_potential === "High"
+                        ? "default"
+                        : lead.ai_potential === "Medium"
+                        ? "secondary"
+                        : "outline"
+                    }
+                    className="text-xs font-semibold"
+                  >
+                    {lead.ai_potential}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="text-xs">
+                    {lead.lead_category}
+                  </Badge>
                 </TableCell>
                 <TableCell>
                   <Badge
@@ -251,18 +263,13 @@ export const LeadTable = ({ leads }: LeadTableProps) => {
                         <div className="space-y-2">
                           <p className="font-semibold">Score Breakdown:</p>
                           <ul className="text-xs space-y-1">
-                            <li>
-                              Firmographic Fit: {lead.breakdown?.firmographic}/50
-                            </li>
-                            <li>Intent Signals: {lead.breakdown?.intent}/40</li>
-                            <li>
-                              Contactability: {lead.breakdown?.contactability}/20
-                            </li>
-                            <li>
-                              Data Quality: {lead.breakdown?.enrichment}/10
-                            </li>
+                            <li>Recent Funding: {lead.breakdown?.funding}/100 (35%)</li>
+                            <li>Hiring Activity: {lead.breakdown?.hiring}/100 (25%)</li>
+                            <li>Revenue: {lead.breakdown?.revenue}/100 (20%)</li>
+                            <li>Company Size: {lead.breakdown?.size}/100 (10%)</li>
+                            <li>Data Quality: {Math.round(lead.breakdown?.confidence || 0)}/100 (10%)</li>
                           </ul>
-                          <p className="text-xs italic mt-2">
+                          <p className="text-xs italic mt-2 pt-2 border-t">
                             {lead.explanation}
                           </p>
                         </div>

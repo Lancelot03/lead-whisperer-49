@@ -11,11 +11,14 @@ export interface Lead {
   lead_score?: number;
   confidence_level?: "Low" | "Medium" | "High";
   explanation?: string;
+  ai_potential?: "High" | "Medium" | "Low";
+  lead_category?: "Enterprise" | "Growth" | "Startup";
   breakdown?: {
-    firmographic: number;
-    intent: number;
-    contactability: number;
-    enrichment: number;
+    funding: number;
+    hiring: number;
+    revenue: number;
+    size: number;
+    confidence: number;
   };
 }
 
@@ -28,78 +31,41 @@ const parseNumber = (value: any): number => {
   return 0;
 };
 
-const calculateFirmographicFit = (lead: Lead): number => {
-  let score = 0;
-  const employees = parseNumber(lead.employees);
-  const revenue = parseNumber(lead.revenue_est);
-
-  // Employee count scoring (0-30)
-  if (employees >= 50 && employees <= 500) {
-    score += 30; // Sweet spot for mid-market
-  } else if (employees >= 500 && employees <= 5000) {
-    score += 25; // Enterprise
-  } else if (employees > 5000) {
-    score += 15; // Large enterprise (harder to penetrate)
-  } else if (employees >= 10) {
-    score += 20; // Small business
-  }
-
-  // Revenue scoring (0-20)
-  if (revenue >= 1000000 && revenue <= 50000000) {
-    score += 20; // Good revenue range
-  } else if (revenue > 50000000) {
-    score += 15;
-  } else if (revenue >= 100000) {
-    score += 10;
-  }
-
-  return Math.min(score, 50);
-};
-
-const calculateIntentSignals = (lead: Lead): number => {
-  let score = 0;
-  const jobs = parseNumber(lead.jobs_30d);
+// Business-driven scoring components
+const calculateFundingScore = (lead: Lead): number => {
   const hasFunding = lead.recent_funding && lead.recent_funding.toLowerCase() !== "no";
-
-  // Job postings (0-25)
-  if (jobs >= 5) {
-    score += 25; // High hiring = growth
-  } else if (jobs >= 2) {
-    score += 20;
-  } else if (jobs >= 1) {
-    score += 15;
-  }
-
-  // Recent funding (0-15)
-  if (hasFunding) {
-    score += 15;
-  }
-
-  return Math.min(score, 40);
+  return hasFunding ? 100 : 0;
 };
 
-const calculateContactability = (lead: Lead): number => {
-  let score = 0;
-
-  // Email (0-10)
-  if (lead.email && lead.email.includes("@")) {
-    score += 10;
-  }
-
-  // LinkedIn (0-5)
-  if (lead.linkedin && lead.linkedin.includes("linkedin.com")) {
-    score += 5;
-  }
-
-  // Domain (0-5)
-  if (lead.domain) {
-    score += 5;
-  }
-
-  return Math.min(score, 20);
+const calculateHiringScore = (lead: Lead): number => {
+  const jobs = parseNumber(lead.jobs_30d);
+  if (jobs >= 10) return 100;
+  if (jobs >= 5) return 80;
+  if (jobs >= 2) return 60;
+  if (jobs >= 1) return 40;
+  return 0;
 };
 
-const calculateEnrichmentEfficiency = (lead: Lead): number => {
+const calculateRevenueScore = (lead: Lead): number => {
+  const revenue = parseNumber(lead.revenue_est);
+  if (revenue >= 50000000) return 100; // $50M+
+  if (revenue >= 10000000) return 85;  // $10M-$50M
+  if (revenue >= 5000000) return 70;   // $5M-$10M
+  if (revenue >= 1000000) return 55;   // $1M-$5M
+  if (revenue >= 100000) return 30;    // $100K-$1M
+  return 10;
+};
+
+const calculateSizeScore = (lead: Lead): number => {
+  const employees = parseNumber(lead.employees);
+  if (employees >= 1000) return 100; // Enterprise
+  if (employees >= 250) return 85;   // Large mid-market
+  if (employees >= 50) return 70;    // Mid-market
+  if (employees >= 10) return 50;    // Small business
+  return 25;
+};
+
+const calculateConfidenceScore = (lead: Lead): number => {
   const fields = [
     lead.company_name,
     lead.domain,
@@ -110,58 +76,93 @@ const calculateEnrichmentEfficiency = (lead: Lead): number => {
     lead.jobs_30d,
     lead.recent_funding,
   ];
-
   const filledFields = fields.filter((f) => f && f !== "").length;
-  return Math.round((filledFields / fields.length) * 10);
+  return (filledFields / fields.length) * 100;
+};
+
+const determineAIPotential = (lead: Lead, breakdown: any): "High" | "Medium" | "Low" => {
+  const fundingScore = breakdown.funding;
+  const hiringScore = breakdown.hiring;
+  const sizeScore = breakdown.size;
+  
+  const combinedScore = (fundingScore * 0.4) + (hiringScore * 0.35) + (sizeScore * 0.25);
+  
+  if (combinedScore >= 75) return "High";
+  if (combinedScore >= 45) return "Medium";
+  return "Low";
+};
+
+const determineLeadCategory = (lead: Lead): "Enterprise" | "Growth" | "Startup" => {
+  const employees = parseNumber(lead.employees);
+  const revenue = parseNumber(lead.revenue_est);
+  const jobs = parseNumber(lead.jobs_30d);
+  
+  if (employees >= 500 || revenue >= 50000000) return "Enterprise";
+  if (employees >= 50 || revenue >= 5000000 || jobs >= 3) return "Growth";
+  return "Startup";
 };
 
 export const scoreLead = (lead: Lead): Lead => {
+  // Calculate individual component scores (0-100 scale)
   const breakdown = {
-    firmographic: calculateFirmographicFit(lead),
-    intent: calculateIntentSignals(lead),
-    contactability: calculateContactability(lead),
-    enrichment: calculateEnrichmentEfficiency(lead),
+    funding: calculateFundingScore(lead),
+    hiring: calculateHiringScore(lead),
+    revenue: calculateRevenueScore(lead),
+    size: calculateSizeScore(lead),
+    confidence: calculateConfidenceScore(lead),
   };
 
+  // Weighted business-driven score (0-100)
   const lead_score = Math.round(
-    breakdown.firmographic * 0.3 +
-      breakdown.intent * 0.4 +
-      breakdown.contactability * 0.2 +
-      breakdown.enrichment * 0.1
+    breakdown.funding * 0.35 +
+    breakdown.hiring * 0.25 +
+    breakdown.revenue * 0.20 +
+    breakdown.size * 0.10 +
+    breakdown.confidence * 0.10
   );
 
+  // Confidence based on data completeness
   let confidence_level: "Low" | "Medium" | "High" = "Low";
-  if (breakdown.enrichment >= 7) confidence_level = "High";
-  else if (breakdown.enrichment >= 5) confidence_level = "Medium";
+  if (breakdown.confidence >= 75) confidence_level = "High";
+  else if (breakdown.confidence >= 50) confidence_level = "Medium";
+
+  // Enrichment fields
+  const ai_potential = determineAIPotential(lead, breakdown);
+  const lead_category = determineLeadCategory(lead);
 
   // Generate explanation
   const explanations: string[] = [];
+  const jobs = parseNumber(lead.jobs_30d);
+  const revenue = parseNumber(lead.revenue_est);
+  const hasFunding = lead.recent_funding && lead.recent_funding.toLowerCase() !== "no";
   
-  if (breakdown.intent >= 20) {
-    explanations.push(`+Intent: High (${parseNumber(lead.jobs_30d)} jobs posted)`);
-  } else if (breakdown.intent >= 10) {
-    explanations.push(`+Intent: Medium`);
+  if (hasFunding) {
+    explanations.push("Recent funding round");
+  }
+  
+  if (jobs >= 5) {
+    explanations.push(`High hiring momentum (${jobs} jobs)`);
+  } else if (jobs >= 2) {
+    explanations.push(`Active hiring (${jobs} jobs)`);
+  }
+  
+  if (revenue >= 10000000) {
+    explanations.push("Strong revenue base");
   }
 
-  if (breakdown.firmographic >= 35) {
-    explanations.push(`+Fit: High (Strong firmographics)`);
-  } else if (breakdown.firmographic >= 20) {
-    explanations.push(`+Fit: Medium`);
+  if (!explanations.length) {
+    explanations.push("Baseline fit");
   }
 
-  if (breakdown.contactability >= 15) {
-    explanations.push(`+Contact: Strong (Email & LinkedIn found)`);
-  } else if (breakdown.contactability >= 10) {
-    explanations.push(`+Contact: Good (Email found)`);
-  }
-
-  const explanation = explanations.join(", ");
+  const explanation = explanations.join(" • ");
 
   return {
     ...lead,
     lead_score,
     confidence_level,
     explanation,
+    ai_potential,
+    lead_category,
     breakdown,
   };
 };

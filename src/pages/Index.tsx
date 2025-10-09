@@ -4,6 +4,7 @@ import { LeadUploader } from "@/components/LeadUploader";
 import { LeadTable } from "@/components/LeadTable";
 import { StatsCards } from "@/components/StatsCards";
 import { FilterPanel } from "@/components/FilterPanel";
+import { LeadInsights } from "@/components/LeadInsights";
 import { Lead, scoreAndDeduplicateLeads } from "@/utils/leadScoring";
 
 const Index = () => {
@@ -21,7 +22,7 @@ const Index = () => {
     return scoredLeads.filter((lead) => {
       if ((lead.lead_score || 0) < minScore) return false;
       if (emailOnly && !lead.email) return false;
-      if (highIntentOnly && (lead.breakdown?.intent || 0) < 20) return false;
+      if (highIntentOnly && (lead.breakdown?.hiring || 0) < 60) return false;
       return true;
     });
   }, [scoredLeads, minScore, emailOnly, highIntentOnly]);
@@ -93,6 +94,8 @@ const Index = () => {
         ) : (
           <>
             <StatsCards leads={filteredLeads} />
+            
+            <LeadInsights leads={filteredLeads} />
 
             <div className="grid lg:grid-cols-4 gap-6">
               <div className="lg:col-span-1">
