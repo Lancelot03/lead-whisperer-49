@@ -1,15 +1,55 @@
+import { useState } from "react";
 import { Lead } from "@/utils/leadScoring";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Mail, Linkedin, Phone, Star, Clock, TrendingUp } from "lucide-react";
+import { Mail, Linkedin, Phone, Star, Clock, TrendingUp, Sparkles } from "lucide-react";
+import { enrichLeadContacts } from "@/utils/contactEnrichment";
+import { useToast } from "@/hooks/use-toast";
 
 interface ContactRecommendationsProps {
   leads: Lead[];
+  onLeadsUpdated?: (leads: Lead[]) => void;
 }
 
-export const ContactRecommendations = ({ leads }: ContactRecommendationsProps) => {
+export const ContactRecommendations = ({ leads, onLeadsUpdated }: ContactRecommendationsProps) => {
+  const [isEnriching, setIsEnriching] = useState(false);
+  const { toast } = useToast();
+
   if (leads.length === 0) return null;
+
+  const handleEnrichContacts = async () => {
+    setIsEnriching(true);
+    toast({
+      title: "Enriching contacts...",
+      description: "Fetching email and LinkedIn information from company websites",
+    });
+
+    try {
+      const enrichedLeads = await enrichLeadContacts(leads);
+      
+      const enrichedCount = enrichedLeads.filter((lead, idx) => 
+        (lead.email !== leads[idx].email) || (lead.linkedin !== leads[idx].linkedin)
+      ).length;
+
+      if (onLeadsUpdated) {
+        onLeadsUpdated(enrichedLeads);
+      }
+
+      toast({
+        title: "Enrichment complete!",
+        description: `Updated contact info for ${enrichedCount} companies`,
+      });
+    } catch (error) {
+      toast({
+        title: "Enrichment failed",
+        description: "Could not fetch contact information",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEnriching(false);
+    }
+  };
 
   // Priority tiers for contact
   const immediateContact = leads.filter(l => 
@@ -92,11 +132,24 @@ export const ContactRecommendations = ({ leads }: ContactRecommendationsProps) =
     <div className="space-y-6">
       <Card className="shadow-card border-l-4 border-l-primary">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-primary" />
-            Contact Recommendations
-          </CardTitle>
-          <CardDescription>Prioritized outreach strategy based on lead quality and readiness</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-primary" />
+                Contact Recommendations
+              </CardTitle>
+              <CardDescription>Prioritized outreach strategy based on lead quality and readiness</CardDescription>
+            </div>
+            <Button 
+              onClick={handleEnrichContacts}
+              disabled={isEnriching}
+              size="sm"
+              variant="outline"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              {isEnriching ? "Enriching..." : "Fetch Contact Info"}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {immediateContact.length > 0 && (

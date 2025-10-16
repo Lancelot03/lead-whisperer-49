@@ -33,6 +33,10 @@ const Index = () => {
     setRawLeads(leads);
   };
 
+  const handleLeadsUpdated = (updatedLeads: Lead[]) => {
+    setRawLeads(updatedLeads);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Header */}
@@ -110,7 +114,7 @@ const Index = () => {
                 highIntentOnly={highIntentOnly}
                 onHighIntentOnlyChange={setHighIntentOnly}
               />
-              <ContactRecommendations leads={filteredLeads} />
+              <ContactRecommendations leads={filteredLeads} onLeadsUpdated={handleLeadsUpdated} />
             </div>
 
             <LeadTable leads={filteredLeads} />

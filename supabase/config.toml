@@ -1,0 +1,4 @@
+project_id = "lncpdvepglijgyesozfp"
+
+[functions.enrich-contacts]
+verify_jwt = false
