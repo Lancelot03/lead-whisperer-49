@@ -5,6 +5,8 @@ import { LeadTable } from "@/components/LeadTable";
 import { StatsCards } from "@/components/StatsCards";
 import { FilterPanel } from "@/components/FilterPanel";
 import { LeadInsights } from "@/components/LeadInsights";
+import { ValidationWarnings } from "@/components/ValidationWarnings";
+import { ContactRecommendations } from "@/components/ContactRecommendations";
 import { Lead, scoreAndDeduplicateLeads } from "@/utils/leadScoring";
 
 const Index = () => {
@@ -95,24 +97,23 @@ const Index = () => {
           <>
             <StatsCards leads={filteredLeads} />
             
+            <ValidationWarnings leads={scoredLeads} />
+            
             <LeadInsights leads={filteredLeads} />
 
-            <div className="grid lg:grid-cols-4 gap-6">
-              <div className="lg:col-span-1">
-                <FilterPanel
-                  minScore={minScore}
-                  onMinScoreChange={setMinScore}
-                  emailOnly={emailOnly}
-                  onEmailOnlyChange={setEmailOnly}
-                  highIntentOnly={highIntentOnly}
-                  onHighIntentOnlyChange={setHighIntentOnly}
-                />
-              </div>
-
-              <div className="lg:col-span-3">
-                <LeadTable leads={filteredLeads} />
-              </div>
+            <div className="grid lg:grid-cols-2 gap-6">
+              <FilterPanel
+                minScore={minScore}
+                onMinScoreChange={setMinScore}
+                emailOnly={emailOnly}
+                onEmailOnlyChange={setEmailOnly}
+                highIntentOnly={highIntentOnly}
+                onHighIntentOnlyChange={setHighIntentOnly}
+              />
+              <ContactRecommendations leads={filteredLeads} />
             </div>
+
+            <LeadTable leads={filteredLeads} />
           </>
         )}
       </main>

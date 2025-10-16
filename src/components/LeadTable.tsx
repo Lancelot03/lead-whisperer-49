@@ -1,6 +1,12 @@
 import { useState, useMemo } from "react";
-import { ArrowUpDown, ArrowUp, ArrowDown, Download, Info } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Download, Info, FileJson, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -122,6 +128,75 @@ export const LeadTable = ({ leads }: LeadTableProps) => {
     });
   };
 
+  const exportToJSON = () => {
+    const jsonContent = JSON.stringify(sortedLeads, null, 2);
+    const blob = new Blob([jsonContent], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `refined_prioritized_leads_${new Date().toISOString().split("T")[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export successful",
+      description: "Refined leads exported to JSON",
+    });
+  };
+
+  const exportToExcel = () => {
+    // Create Excel-compatible TSV (Tab-Separated Values)
+    const headers = [
+      "Company",
+      "Domain",
+      "Employees",
+      "Revenue Est",
+      "Jobs (30d)",
+      "Recent Funding",
+      "Score (Adjusted)",
+      "Confidence",
+      "AI Potential",
+      "Lead Category",
+      "Email",
+      "LinkedIn",
+      "Explanation",
+    ];
+
+    const rows = sortedLeads.map((lead) => [
+      lead.company_name || "",
+      lead.domain || "",
+      lead.employees || "",
+      lead.revenue_est || "",
+      lead.jobs_30d || "",
+      lead.recent_funding || "",
+      lead.lead_score || "",
+      lead.confidence_level || "",
+      lead.ai_potential || "",
+      lead.lead_category || "",
+      lead.email || "",
+      lead.linkedin || "",
+      lead.explanation || "",
+    ]);
+
+    const tsvContent = [
+      headers.join("\t"),
+      ...rows.map((row) => row.join("\t")),
+    ].join("\n");
+
+    const blob = new Blob([tsvContent], { type: "text/tab-separated-values" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `refined_prioritized_leads_${new Date().toISOString().split("T")[0]}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export successful",
+      description: "Refined leads exported to Excel format",
+    });
+  };
+
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field)
       return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
@@ -141,10 +216,28 @@ export const LeadTable = ({ leads }: LeadTableProps) => {
             {sortedLeads.length} leads sorted by priority
           </p>
         </div>
-        <Button onClick={exportToCSV} variant="default">
-          <Download className="mr-2 h-4 w-4" />
-          Export CSV
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="default">
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={exportToCSV}>
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Export as CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={exportToJSON}>
+              <FileJson className="mr-2 h-4 w-4" />
+              Export as JSON
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={exportToExcel}>
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Export as Excel
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="rounded-lg border bg-card shadow-card overflow-hidden">

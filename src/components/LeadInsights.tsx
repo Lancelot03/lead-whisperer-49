@@ -1,7 +1,7 @@
 import { Lead } from "@/utils/leadScoring";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Target, Award } from "lucide-react";
+import { TrendingUp, Target, Award, BarChart3, PieChart } from "lucide-react";
 
 interface LeadInsightsProps {
   leads: Lead[];
@@ -39,6 +39,22 @@ export const LeadInsights = ({ leads }: LeadInsightsProps) => {
   const highPotentialCount = leads.filter(l => l.ai_potential === "High").length;
   const fundedCount = leads.filter(l => l.recent_funding && l.recent_funding.toLowerCase() !== "no").length;
   const activeHiringCount = leads.filter(l => (l.jobs_30d as number) >= 2).length;
+
+  // Score distribution for chart
+  const scoreRanges = {
+    "0-20": leads.filter(l => (l.lead_score || 0) < 20).length,
+    "20-40": leads.filter(l => (l.lead_score || 0) >= 20 && (l.lead_score || 0) < 40).length,
+    "40-60": leads.filter(l => (l.lead_score || 0) >= 40 && (l.lead_score || 0) < 60).length,
+    "60-80": leads.filter(l => (l.lead_score || 0) >= 60 && (l.lead_score || 0) < 80).length,
+    "80-100": leads.filter(l => (l.lead_score || 0) >= 80).length,
+  };
+
+  // AI Potential distribution
+  const aiPotentialDist = {
+    High: leads.filter(l => l.ai_potential === "High").length,
+    Medium: leads.filter(l => l.ai_potential === "Medium").length,
+    Low: leads.filter(l => l.ai_potential === "Low").length,
+  };
 
   return (
     <div className="space-y-6">
@@ -120,6 +136,85 @@ export const LeadInsights = ({ leads }: LeadInsightsProps) => {
                   <span className="font-mono font-bold text-lg">{count}</span>
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Score Distribution
+            </CardTitle>
+            <CardDescription>Lead count by score range</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {Object.entries(scoreRanges).map(([range, count]) => {
+                const maxCount = Math.max(...Object.values(scoreRanges));
+                const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
+                return (
+                  <div key={range}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium">{range}</span>
+                      <span className="text-sm font-mono">{count}</span>
+                    </div>
+                    <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-primary transition-all duration-300"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <PieChart className="h-5 w-5 text-accent" />
+              AI Potential Breakdown
+            </CardTitle>
+            <CardDescription>Classification by AI readiness</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {Object.entries(aiPotentialDist).map(([level, count]) => {
+                const percentage = Math.round((count / leads.length) * 100);
+                return (
+                  <div key={level}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant={level === "High" ? "default" : level === "Medium" ? "secondary" : "outline"}
+                          className="text-xs"
+                        >
+                          {level}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">{percentage}%</span>
+                      </div>
+                      <span className="text-sm font-mono font-bold">{count}</span>
+                    </div>
+                    <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full transition-all duration-300 ${
+                          level === "High" 
+                            ? "bg-gradient-primary" 
+                            : level === "Medium" 
+                            ? "bg-accent" 
+                            : "bg-muted-foreground"
+                        }`}
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
