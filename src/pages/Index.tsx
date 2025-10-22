@@ -133,20 +133,20 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-gradient-mesh">
       {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
+      <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-10 shadow-glow">
         <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-primary">
+          <div className="flex items-center gap-3 animate-fade-in">
+            <div className="p-3 rounded-xl bg-gradient-primary shadow-glow animate-float">
               <Sparkles className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                 Smart Lead Prioritizer
               </h1>
-              <p className="text-sm text-muted-foreground">
-                AI-powered lead scoring and ranking
+              <p className="text-sm text-muted-foreground font-medium">
+                AI-powered lead scoring and ranking ✨
               </p>
             </div>
           </div>
@@ -159,15 +159,17 @@ const Index = () => {
           <div className="max-w-3xl mx-auto">
             <LeadUploader onLeadsUploaded={handleLeadsUploaded} />
             
-            <div className="mt-8 text-center">
-              <div className="p-6 rounded-lg bg-card shadow-card border-2 border-dashed border-primary/20">
-                <h3 className="text-lg font-semibold mb-2">Want to try it first?</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Load example data to see how the lead prioritizer works
+            <div className="mt-8 text-center animate-fade-in">
+              <div className="p-8 rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 border-2 border-dashed border-primary/30 shadow-glow backdrop-blur-sm">
+                <h3 className="text-xl font-bold mb-3 bg-gradient-primary bg-clip-text text-transparent">
+                  Want to try it first?
+                </h3>
+                <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+                  Load example data to see how the lead prioritizer works with AI-powered scoring ✨
                 </p>
                 <button
                   onClick={loadExampleData}
-                  className="px-6 py-2 bg-gradient-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
+                  className="px-8 py-3 bg-gradient-primary text-primary-foreground rounded-xl font-semibold shadow-glow hover:scale-105 transition-all duration-300 hover:shadow-xl"
                 >
                   Load Example Data
                 </button>
@@ -175,31 +177,33 @@ const Index = () => {
             </div>
 
             <div className="mt-12 text-center">
-              <h2 className="text-xl font-semibold mb-4">How it works</h2>
+              <h2 className="text-2xl font-bold mb-6 text-center bg-gradient-primary bg-clip-text text-transparent">
+                How it works
+              </h2>
               <div className="grid md:grid-cols-3 gap-6 text-left">
-                <div className="p-6 rounded-lg bg-card shadow-card">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 text-primary font-bold text-lg">
+                <div className="p-6 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 shadow-glow hover:scale-105 transition-transform duration-300 animate-fade-in">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center mb-4 text-primary-foreground font-bold text-xl shadow-glow">
                     1
                   </div>
-                  <h3 className="font-semibold mb-2">Upload Your Data</h3>
+                  <h3 className="font-bold mb-2 text-lg">Upload Your Data</h3>
                   <p className="text-sm text-muted-foreground">
                     Drop in your CSV or JSON file with lead information
                   </p>
                 </div>
-                <div className="p-6 rounded-lg bg-card shadow-card">
-                  <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4 text-accent font-bold text-lg">
+                <div className="p-6 rounded-xl bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 shadow-glow hover:scale-105 transition-transform duration-300 animate-fade-in" style={{animationDelay: "0.1s"}}>
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-accent flex items-center justify-center mb-4 text-secondary-foreground font-bold text-xl shadow-glow">
                     2
                   </div>
-                  <h3 className="font-semibold mb-2">AI Analyzes & Scores</h3>
+                  <h3 className="font-bold mb-2 text-lg">AI Analyzes & Scores</h3>
                   <p className="text-sm text-muted-foreground">
                     Our algorithm evaluates firmographics, intent, and contactability
                   </p>
                 </div>
-                <div className="p-6 rounded-lg bg-card shadow-card">
-                  <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mb-4 text-success font-bold text-lg">
+                <div className="p-6 rounded-xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20 shadow-glow hover:scale-105 transition-transform duration-300 animate-fade-in" style={{animationDelay: "0.2s"}}>
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-secondary flex items-center justify-center mb-4 text-accent-foreground font-bold text-xl shadow-glow">
                     3
                   </div>
-                  <h3 className="font-semibold mb-2">Get Prioritized List</h3>
+                  <h3 className="font-bold mb-2 text-lg">Get Prioritized List</h3>
                   <p className="text-sm text-muted-foreground">
                     Export ranked leads with explanations for your sales team
                   </p>
