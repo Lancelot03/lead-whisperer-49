@@ -1,4 +1,5 @@
 import { Lead } from "./leadScoring";
+import { supabase } from "@/integrations/supabase/client";
 
 export const enrichLeadContacts = async (leads: Lead[]): Promise<Lead[]> => {
   const enrichedLeads = await Promise.all(
@@ -9,32 +10,23 @@ export const enrichLeadContacts = async (leads: Lead[]): Promise<Lead[]> => {
       }
 
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/enrich-contacts`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              companyName: lead.company_name,
-              domain: lead.domain,
-            }),
-          }
-        );
+        const { data, error } = await supabase.functions.invoke('enrich-contacts', {
+          body: {
+            companyName: lead.company_name,
+            domain: lead.domain,
+          },
+        });
 
-        if (!response.ok) {
-          console.error(`Failed to enrich ${lead.company_name}`);
+        if (error) {
+          console.error(`Failed to enrich ${lead.company_name}:`, error);
           return lead;
         }
-
-        const result = await response.json();
         
-        if (result.success && result.data) {
+        if (data?.success && data?.data) {
           return {
             ...lead,
-            email: lead.email || result.data.email,
-            linkedin: lead.linkedin || result.data.linkedin,
+            email: lead.email || data.data.email,
+            linkedin: lead.linkedin || data.data.linkedin,
           };
         }
 
