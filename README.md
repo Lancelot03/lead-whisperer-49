@@ -12,7 +12,7 @@ It helps you capture, analyze, and act on potential customer data with a smooth,
 
 ## 🖼️ Preview
 
-**URL**: https://lovable.dev/projects/a92a8de1-d14d-4099-8071-b76028bf2ead
+**URL**: https://lead-whisperer-49.lovable.app
 
 ---
 
