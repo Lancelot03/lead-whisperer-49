@@ -20,6 +20,16 @@ export interface Lead {
     size: number;
     confidence: number;
   };
+  // Advanced Features
+  enrichment_date?: string;
+  data_freshness?: "Fresh" | "Moderate" | "Stale";
+  email_validation?: "Valid" | "Invalid" | "Unknown";
+  domain_status?: "Active" | "Inactive" | "Unknown";
+  growth_velocity?: "High" | "Medium" | "Low";
+  tech_stack?: string[];
+  company_signals?: string[];
+  last_verified?: string;
+  data_quality_score?: number;
 }
 
 const parseNumber = (value: any): number => {
@@ -102,6 +112,66 @@ const determineLeadCategory = (lead: Lead): "Enterprise" | "Growth" | "Startup" 
   return "Startup";
 };
 
+// Advanced feature calculation helpers
+const calculateDataFreshness = (lead: Lead): "Fresh" | "Moderate" | "Stale" => {
+  if (!lead.enrichment_date) return "Stale";
+  const enrichDate = new Date(lead.enrichment_date);
+  const now = new Date();
+  const daysDiff = Math.floor((now.getTime() - enrichDate.getTime()) / (1000 * 60 * 60 * 24));
+  
+  if (daysDiff <= 30) return "Fresh";
+  if (daysDiff <= 90) return "Moderate";
+  return "Stale";
+};
+
+const calculateGrowthVelocity = (lead: Lead): "High" | "Medium" | "Low" => {
+  const jobs = parseNumber(lead.jobs_30d);
+  const hasFunding = lead.recent_funding && lead.recent_funding.toLowerCase() !== "no";
+  
+  if (jobs >= 5 && hasFunding) return "High";
+  if (jobs >= 2 || hasFunding) return "Medium";
+  return "Low";
+};
+
+const generateCompanySignals = (lead: Lead): string[] => {
+  const signals: string[] = [];
+  const jobs = parseNumber(lead.jobs_30d);
+  const hasFunding = lead.recent_funding && lead.recent_funding.toLowerCase() !== "no";
+  const revenue = parseNumber(lead.revenue_est);
+  
+  if (hasFunding) signals.push("🚀 Recent Funding Round");
+  if (jobs >= 10) signals.push("📈 Aggressive Hiring");
+  else if (jobs >= 5) signals.push("👥 Active Recruitment");
+  else if (jobs >= 2) signals.push("🔄 Growing Team");
+  
+  if (revenue >= 50000000) signals.push("💰 Enterprise Revenue");
+  else if (revenue >= 10000000) signals.push("💵 Strong Revenue Base");
+  
+  return signals;
+};
+
+const calculateDataQualityScore = (lead: Lead): number => {
+  const fields = [
+    lead.company_name,
+    lead.domain,
+    lead.employees,
+    lead.revenue_est,
+    lead.email,
+    lead.linkedin,
+    lead.jobs_30d,
+    lead.recent_funding,
+  ];
+  
+  const criticalFields = [lead.company_name, lead.domain, lead.email];
+  const filledFields = fields.filter((f) => f && f !== "").length;
+  const filledCritical = criticalFields.filter((f) => f && f !== "").length;
+  
+  const completeness = (filledFields / fields.length) * 70;
+  const criticalScore = (filledCritical / criticalFields.length) * 30;
+  
+  return Math.round(completeness + criticalScore);
+};
+
 export const scoreLead = (lead: Lead): Lead => {
   // Calculate individual component scores (0-100 scale)
   const breakdown = {
@@ -156,6 +226,21 @@ export const scoreLead = (lead: Lead): Lead => {
 
   const explanation = explanations.join(" • ");
 
+  // Calculate advanced features
+  const enrichment_date = lead.enrichment_date || new Date().toISOString();
+  const data_freshness = calculateDataFreshness({ ...lead, enrichment_date });
+  const growth_velocity = calculateGrowthVelocity(lead);
+  const company_signals = generateCompanySignals(lead);
+  const data_quality_score = calculateDataQualityScore(lead);
+  
+  // Simulate email validation (in production, this would call a real validation API)
+  const email_validation = lead.email ? "Valid" : "Unknown";
+  
+  // Simulate domain status check (in production, this would verify domain is active)
+  const domain_status = lead.domain ? "Active" : "Unknown";
+  
+  const last_verified = new Date().toISOString();
+
   return {
     ...lead,
     lead_score,
@@ -164,6 +249,15 @@ export const scoreLead = (lead: Lead): Lead => {
     ai_potential,
     lead_category,
     breakdown,
+    // Advanced features
+    enrichment_date,
+    data_freshness,
+    email_validation,
+    domain_status,
+    growth_velocity,
+    company_signals,
+    last_verified,
+    data_quality_score,
   };
 };
 

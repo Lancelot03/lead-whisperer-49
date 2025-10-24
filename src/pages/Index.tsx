@@ -7,6 +7,7 @@ import { FilterPanel } from "@/components/FilterPanel";
 import { LeadInsights } from "@/components/LeadInsights";
 import { ValidationWarnings } from "@/components/ValidationWarnings";
 import { ContactRecommendations } from "@/components/ContactRecommendations";
+import { AdvancedFeatures } from "@/components/AdvancedFeatures";
 import { Lead, scoreAndDeduplicateLeads } from "@/utils/leadScoring";
 
 const EXAMPLE_LEADS: Lead[] = [
@@ -20,6 +21,7 @@ const EXAMPLE_LEADS: Lead[] = [
     linkedin: "linkedin.com/company/techcorp",
     jobs_30d: 12,
     recent_funding: "Series B - $15M",
+    tech_stack: ["JavaScript", "AWS", "PostgreSQL", "React", "Docker"],
   },
   {
     id: "2",
@@ -31,6 +33,7 @@ const EXAMPLE_LEADS: Lead[] = [
     linkedin: "linkedin.com/company/dataflow",
     jobs_30d: 6,
     recent_funding: "Series A - $5M",
+    tech_stack: ["Node.js", "React", "MongoDB", "Kubernetes"],
   },
   {
     id: "3",
@@ -42,6 +45,7 @@ const EXAMPLE_LEADS: Lead[] = [
     linkedin: "linkedin.com/company/cloudnext",
     jobs_30d: 18,
     recent_funding: "Series C - $40M",
+    tech_stack: ["JavaScript", "AWS", "PostgreSQL", "Microservices"],
   },
   {
     id: "4",
@@ -53,6 +57,7 @@ const EXAMPLE_LEADS: Lead[] = [
     linkedin: "",
     jobs_30d: 2,
     recent_funding: "Seed - $1M",
+    tech_stack: ["Ruby on Rails", "Redis", "Heroku"],
   },
   {
     id: "5",
@@ -64,6 +69,7 @@ const EXAMPLE_LEADS: Lead[] = [
     linkedin: "linkedin.com/company/ai-ventures",
     jobs_30d: 8,
     recent_funding: "No",
+    tech_stack: ["AI/ML", "Python", "TensorFlow", "AWS", "Docker"],
   },
   {
     id: "6",
@@ -75,6 +81,7 @@ const EXAMPLE_LEADS: Lead[] = [
     linkedin: "linkedin.com/company/enterprise-global",
     jobs_30d: 25,
     recent_funding: "IPO",
+    tech_stack: ["JavaScript", "AWS", "PostgreSQL", "Kubernetes", "React"],
   },
   {
     id: "7",
@@ -86,6 +93,7 @@ const EXAMPLE_LEADS: Lead[] = [
     linkedin: "linkedin.com/company/growth-labs",
     jobs_30d: 4,
     recent_funding: "Series A - $8M",
+    tech_stack: ["JavaScript", "AWS", "PostgreSQL", "React"],
   },
   {
     id: "8",
@@ -97,6 +105,7 @@ const EXAMPLE_LEADS: Lead[] = [
     linkedin: "",
     jobs_30d: 0,
     recent_funding: "No",
+    tech_stack: ["Node.js", "React", "MongoDB"],
   },
 ];
 
@@ -218,6 +227,8 @@ const Index = () => {
             <ValidationWarnings leads={scoredLeads} />
             
             <LeadInsights leads={filteredLeads} />
+
+            <AdvancedFeatures leads={filteredLeads} />
 
             <div className="grid lg:grid-cols-2 gap-6">
               <FilterPanel
